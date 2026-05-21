@@ -10,19 +10,20 @@ print(data.head())
 
 print("------------------------")
 
-a = 'MA20'
-b = 'MA100'
+
+ma_j = 20 # garis ema kecil
+ma_k = 100 # garis ema besar
 
 ## Hitung Moving Average
-data[a] = data['Close'].rolling(window=20).mean()
-data[b] = data['Close'].rolling(window=100).mean()
+data[f'MA{ma_j}'] = data['Close'].rolling(window=ma_j).mean()
+data[f'MA{ma_k}'] = data['Close'].rolling(window=ma_k).mean()
 
 
 ## Buat Signal Trading
 data['Signal'] = 0
 
-data.loc[data[a] < data[b], 'Signal'] = -1
-data.loc[data[a] > data[b], 'Signal'] = 1
+data.loc[data[f'MA{ma_j}'] < data[f'MA{ma_k}'], 'Signal'] = -1
+data.loc[data[f'MA{ma_j}'] > data[f'MA{ma_k}'], 'Signal'] = 1
 
 
 # Hitung return market
@@ -36,7 +37,7 @@ data['Cumulative_Market'] = (1 + data['Return']).cumprod()
 data['Cumulative_Strategy'] = (1 + data['Strategy_Return']).cumprod()
 
 ## Lihat Hasil Signal
-print(data[['Close', a, b, 'Signal']].tail(20))
+print(data[['Close', f'MA{ma_j}', f'MA{ma_k}', 'Signal']].tail(20))
 
 
 # Plot Chart
@@ -44,8 +45,8 @@ fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12,7))
 
 # Chart harga
 ax1.plot(data['Close'], label='Close Price')
-ax1.plot(data[a], label=a)
-ax1.plot(data[b], label=b)
+ax1.plot(data[f'MA{ma_j}'], label=f'MA{ma_j}')
+ax1.plot(data[f'MA{ma_k}'], label=f'MA{ma_k}')
 
 ax1.set_title('Price & Moving Average')
 ax1.legend()
