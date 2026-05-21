@@ -3,12 +3,13 @@ import matplotlib.pyplot as plt
 
 
 ## Ambil Data Market
-data = yf.download("EURUSD=X", period="1y")
+data = yf.download("BTC-USD", period="1y")
 
 print(data.head())
 
 
 print("------------------------")
+
 
 a = 'MA20'
 b = 'MA100'
