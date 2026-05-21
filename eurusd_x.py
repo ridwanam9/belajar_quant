@@ -38,15 +38,32 @@ print(data[['Close', 'MA20', 'MA50', 'Signal']].tail(20))
 
 
 # Plot Chart
-plt.figure(figsize=(14,7))
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12,7))
 
-plt.plot(data['Close'], label='Close Price')
-plt.plot(data['MA20'], label='MA20')
-plt.plot(data['MA50'], label='MA50')
-plt.plot(data['Cumulative_Market'], label='Buy & Hold')
-plt.plot(data['Cumulative_Strategy'], label='Strategy')
+# Chart harga
+ax1.plot(data['Close'], label='Close Price')
+ax1.plot(data['MA20'], label='MA20')
+ax1.plot(data['MA50'], label='MA50')
 
-plt.legend()
-plt.title('Moving Average Crossover Strategy')
+ax1.set_title('Price & Moving Average')
+ax1.legend()
 
+# Chart performa strategy
+ax2.plot(data['Cumulative_Market'], label='Buy & Hold')
+ax2.plot(data['Cumulative_Strategy'], label='Strategy')
+
+ax2.set_title('Strategy Performance')
+ax2.legend()
+
+plt.tight_layout()
 plt.show()
+
+
+# Total return strategy
+strategy_return = data['Cumulative_Strategy'].iloc[-1] - 1
+
+# Total return market
+market_return = data['Cumulative_Market'].iloc[-1] - 1
+
+print(f"Market Return: {market_return:.2%}")
+print(f"Strategy Return: {strategy_return:.2%}")
