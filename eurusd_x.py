@@ -10,7 +10,6 @@ print(data.head())
 
 print("------------------------")
 
-
 ma_j = 20 # garis ema kecil
 ma_k = 100 # garis ema besar
 
@@ -39,9 +38,56 @@ data['Cumulative_Strategy'] = (1 + data['Strategy_Return']).cumprod()
 ## Lihat Hasil Signal
 print(data[['Close', f'MA{ma_j}', f'MA{ma_k}', 'Signal']].tail(20))
 
+# Total return strategy
+strategy_return = data['Cumulative_Strategy'].iloc[-1] - 1
 
+# Total return market
+market_return = data['Cumulative_Market'].iloc[-1] - 1
+
+print(f"Market Return: {market_return:.2%}")
+print(f"Strategy Return: {strategy_return:.2%}")
+
+
+# Hitung rolling maximum
+data['Rolling_Max'] = data['Cumulative_Strategy'].cummax()
+
+# Drawdown
+data['Drawdown'] = (
+    data['Cumulative_Strategy']
+    / data['Rolling_Max']
+) - 1
+
+
+# Max drawdown
+max_drawdown = data['Drawdown'].min()
+
+print(f"Max Drawdown: {max_drawdown:.2%}")
+
+
+# Sharpe Ratio
+sharpe_ratio = (
+    data['Strategy_Return'].mean()
+    / data['Strategy_Return'].std()
+) * (252 ** 0.5)
+
+print(f"Sharpe Ratio: {sharpe_ratio:.2f}")
+
+
+# Trade profit/loss
+trades = data['Strategy_Return'].dropna()
+
+wins = trades[trades > 0]
+losses = trades[trades < 0]
+
+winrate = len(wins) / len(trades)
+
+print(f"Winrate: {winrate:.2%}")
+
+
+
+#################### Chart ########################
 # Plot Chart
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12,7))
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12,6))
 
 # Chart harga
 ax1.plot(data['Close'], label='Close Price')
@@ -62,11 +108,11 @@ plt.tight_layout()
 plt.show()
 
 
-# Total return strategy
-strategy_return = data['Cumulative_Strategy'].iloc[-1] - 1
+# Chart Drawdown
+plt.figure(figsize=(14,5))
 
-# Total return market
-market_return = data['Cumulative_Market'].iloc[-1] - 1
+plt.plot(data['Drawdown'])
 
-print(f"Market Return: {market_return:.2%}")
-print(f"Strategy Return: {strategy_return:.2%}")
+plt.title('Strategy Drawdown')
+
+plt.show()

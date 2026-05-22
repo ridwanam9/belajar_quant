@@ -3,13 +3,12 @@ import matplotlib.pyplot as plt
 
 
 ## Ambil Data Market
-data = yf.download("ES=F", period="2y")
+data = yf.download("NQ=F", period="2y")
 
 print(data.head())
 
 
 print("------------------------")
-
 
 
 ma_j = 20 # garis ema kecil

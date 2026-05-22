@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 ## Ambil Data Market
-data = yf.download("BTC-USD", period="1y")
+data = yf.download("BTC-USD", period="2y")
 
 print(data.head())
 
@@ -39,29 +39,6 @@ data['Cumulative_Strategy'] = (1 + data['Strategy_Return']).cumprod()
 ## Lihat Hasil Signal
 print(data[['Close', f'MA{ma_j}', f'MA{ma_k}', 'Signal']].tail(20))
 
-
-# Plot Chart
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12,7))
-
-# Chart harga
-ax1.plot(data['Close'], label='Close Price')
-ax1.plot(data[f'MA{ma_j}'], label=f'MA{ma_j}')
-ax1.plot(data[f'MA{ma_k}'], label=f'MA{ma_k}')
-
-ax1.set_title('Price & Moving Average')
-ax1.legend()
-
-# Chart performa strategy
-ax2.plot(data['Cumulative_Market'], label='Buy & Hold')
-ax2.plot(data['Cumulative_Strategy'], label='Strategy')
-
-ax2.set_title('Strategy Performance')
-ax2.legend()
-
-plt.tight_layout()
-plt.show()
-
-
 # Total return strategy
 strategy_return = data['Cumulative_Strategy'].iloc[-1] - 1
 
@@ -70,8 +47,6 @@ market_return = data['Cumulative_Market'].iloc[-1] - 1
 
 print(f"Market Return: {market_return:.2%}")
 print(f"Strategy Return: {strategy_return:.2%}")
-
-
 
 
 # Hitung rolling maximum
@@ -88,16 +63,6 @@ data['Drawdown'] = (
 max_drawdown = data['Drawdown'].min()
 
 print(f"Max Drawdown: {max_drawdown:.2%}")
-
-
-plt.figure(figsize=(14,5))
-
-plt.plot(data['Drawdown'])
-
-plt.title('Strategy Drawdown')
-
-plt.show()
-
 
 
 # Sharpe Ratio
@@ -118,3 +83,37 @@ losses = trades[trades < 0]
 winrate = len(wins) / len(trades)
 
 print(f"Winrate: {winrate:.2%}")
+
+
+
+#################### Chart ########################
+# Plot Chart
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12,6))
+
+# Chart harga
+ax1.plot(data['Close'], label='Close Price')
+ax1.plot(data[f'MA{ma_j}'], label=f'MA{ma_j}')
+ax1.plot(data[f'MA{ma_k}'], label=f'MA{ma_k}')
+
+ax1.set_title('Price & Moving Average')
+ax1.legend()
+
+# Chart performa strategy
+ax2.plot(data['Cumulative_Market'], label='Buy & Hold')
+ax2.plot(data['Cumulative_Strategy'], label='Strategy')
+
+ax2.set_title('Strategy Performance')
+ax2.legend()
+
+plt.tight_layout()
+plt.show()
+
+
+# Chart Drawdown
+plt.figure(figsize=(14,5))
+
+plt.plot(data['Drawdown'])
+
+plt.title('Strategy Drawdown')
+
+plt.show()
