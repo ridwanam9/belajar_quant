@@ -14,6 +14,7 @@ print("------------------------")
 ma_j = 20 # garis ema kecil
 ma_k = 100 # garis ema besar
 
+
 ## Hitung Moving Average
 data[f'MA{ma_j}'] = data['Close'].rolling(window=ma_j).mean()
 data[f'MA{ma_k}'] = data['Close'].rolling(window=ma_k).mean()
@@ -84,7 +85,16 @@ winrate = len(wins) / len(trades)
 
 print(f"Winrate: {winrate:.2%}")
 
-
+# Detect posisi berubah (Spread)
+data['Trade'] = data['Signal'].diff().abs()
+spread_cost = 0.0001
+data['Strategy_Return_After_Cost'] = (
+    data['Strategy_Return']
+    - (data['Trade'] * spread_cost)
+)
+data['Cumulative_Strategy_After_Cost'] = (
+    1 + data['Strategy_Return_After_Cost']
+).cumprod()
 
 #################### Chart ########################
 # Plot Chart
@@ -115,5 +125,24 @@ plt.figure(figsize=(14,5))
 plt.plot(data['Drawdown'])
 
 plt.title('Strategy Drawdown')
+
+plt.show()
+
+
+# Chart Transaction Cost after spread
+plt.figure(figsize=(14,7))
+
+plt.plot(
+    data['Cumulative_Strategy'],
+    label='Without Cost'
+)
+
+plt.plot(
+    data['Cumulative_Strategy_After_Cost'],
+    label='After Spread Cost'
+)
+
+plt.legend()
+plt.title('Transaction Cost Impact')
 
 plt.show()
