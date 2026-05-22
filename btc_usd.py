@@ -14,6 +14,8 @@ print("------------------------")
 ma_j = 20 # garis ema kecil
 ma_k = 100 # garis ema besar
 
+initial_capital = 10000
+risk_per_trade = 0.01
 
 ## Hitung Moving Average
 data[f'MA{ma_j}'] = data['Close'].rolling(window=ma_j).mean()
@@ -29,6 +31,7 @@ data.loc[data[f'MA{ma_j}'] > data[f'MA{ma_k}'], 'Signal'] = 1
 
 # Hitung return market
 data['Return'] = data['Close'].pct_change()
+
 
 # Return strategy
 data['Strategy_Return'] = data['Return'] * data['Signal'].shift(1)
@@ -96,6 +99,30 @@ data['Cumulative_Strategy_After_Cost'] = (
     1 + data['Strategy_Return_After_Cost']
 ).cumprod()
 
+# Hitung valatility market
+data['Volatility'] = (
+    data['Return']
+    .rolling(20)
+    .std()
+)
+
+data['Position_Size'] = (
+    risk_per_trade
+    / data['Volatility']
+)
+
+data['Position_Size'] = data['Position_Size'].clip(upper=5)
+
+
+data['Sized_Strategy_Return'] = (
+    data['Strategy_Return_After_Cost']
+    * data['Position_Size'].shift(1)
+)
+
+data['Cumulative_Sized_Strategy'] = (
+    1 + data['Sized_Strategy_Return']
+).cumprod()
+
 #################### Chart ########################
 # Plot Chart
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12,6))
@@ -144,5 +171,23 @@ plt.plot(
 
 plt.legend()
 plt.title('Transaction Cost Impact')
+
+plt.show()
+
+
+plt.figure(figsize=(14,7))
+
+plt.plot(
+    data['Cumulative_Strategy_After_Cost'],
+    label='Fixed Size'
+)
+
+plt.plot(
+    data['Cumulative_Sized_Strategy'],
+    label='Volatility Adjusted'
+)
+
+plt.legend()
+plt.title('Position Sizing Comparison')
 
 plt.show()
