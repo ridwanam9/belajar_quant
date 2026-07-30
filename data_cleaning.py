@@ -8,3 +8,10 @@ print("-"*50)
 print(df.info())
 print("-"*50)
 print(df.describe())
+print("-"*50)
+
+
+
+
+# berapa jumlah data hilang berdasarkan kolom
+print(df.isnull().sum())
