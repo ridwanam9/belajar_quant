@@ -1,29 +1,26 @@
 import yfinance as yf
 import matplotlib.pyplot as plt
 
-
 ## Ambil Data Market
 data = yf.download("EURUSD=X", period="1y")
-
 print(data.head())
-
-
 print("------------------------")
 
 ma_j = 20 # garis ema kecil
 ma_k = 100 # garis ema besar
 
+initial_capital = 10000
+risk_per_trade = 0.01
+
 ## Hitung Moving Average
 data[f'MA{ma_j}'] = data['Close'].rolling(window=ma_j).mean()
 data[f'MA{ma_k}'] = data['Close'].rolling(window=ma_k).mean()
-
 
 ## Buat Signal Trading
 data['Signal'] = 0
 
 data.loc[data[f'MA{ma_j}'] < data[f'MA{ma_k}'], 'Signal'] = -1
 data.loc[data[f'MA{ma_j}'] > data[f'MA{ma_k}'], 'Signal'] = 1
-
 
 # Hitung return market
 data['Return'] = data['Close'].pct_change()
@@ -83,7 +80,40 @@ winrate = len(wins) / len(trades)
 
 print(f"Winrate: {winrate:.2%}")
 
+# Detect posisi berubah (Spread)
+data['Trade'] = data['Signal'].diff().abs()
+spread_cost = 0.0001
+data['Strategy_Return_After_Cost'] = (
+    data['Strategy_Return']
+    - (data['Trade'] * spread_cost)
+)
+data['Cumulative_Strategy_After_Cost'] = (
+    1 + data['Strategy_Return_After_Cost']
+).cumprod()
 
+# Hitung valatility market
+data['Volatility'] = (
+    data['Return']
+    .rolling(20)
+    .std()
+)
+
+data['Position_Size'] = (
+    risk_per_trade
+    / data['Volatility']
+)
+
+data['Position_Size'] = data['Position_Size'].clip(upper=5)
+
+
+data['Sized_Strategy_Return'] = (
+    data['Strategy_Return_After_Cost']
+    * data['Position_Size'].shift(1)
+)
+
+data['Cumulative_Sized_Strategy'] = (
+    1 + data['Sized_Strategy_Return']
+).cumprod()
 
 #################### Chart ########################
 # Plot Chart
@@ -114,5 +144,42 @@ plt.figure(figsize=(14,5))
 plt.plot(data['Drawdown'])
 
 plt.title('Strategy Drawdown')
+
+plt.show()
+
+
+# Chart Transaction Cost after spread
+plt.figure(figsize=(14,7))
+
+plt.plot(
+    data['Cumulative_Strategy'],
+    label='Without Cost'
+)
+
+plt.plot(
+    data['Cumulative_Strategy_After_Cost'],
+    label='After Spread Cost'
+)
+
+plt.legend()
+plt.title('Transaction Cost Impact')
+
+plt.show()
+
+
+plt.figure(figsize=(14,7))
+
+plt.plot(
+    data['Cumulative_Strategy_After_Cost'],
+    label='Fixed Size'
+)
+
+plt.plot(
+    data['Cumulative_Sized_Strategy'],
+    label='Volatility Adjusted'
+)
+
+plt.legend()
+plt.title('Position Sizing Comparison')
 
 plt.show()
